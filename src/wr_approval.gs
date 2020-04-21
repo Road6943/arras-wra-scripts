@@ -174,9 +174,11 @@ function ADD_APPROVED_WR_TO_SHEET_AND_CALL_PLAYER_STATS(values, recordRow, recor
   const recordRange = recordsSheet.getRange(recordRow, recordCol, 1, 3); // 1-indexed
   recordRange.setValues(newRecordArray);
   
+  const newValues = recordsSheet.getDataRange().getValues(); // get the new records sheet data after new wr has been updated
+  
   // update Player/Tank Stats by calling Player_Tank_Stats(),
   // since script-based editing doesnt naturally set off an onEdit trigger
-  PLAYER_TANK_STATS_DRIVER(values);
+  PLAYER_TANK_STATS_DRIVER(newValues);
 }
 
 
