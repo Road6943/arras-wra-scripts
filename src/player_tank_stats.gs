@@ -125,10 +125,15 @@ function PRINT_ARRAY(arrayToPrint, sheetName, cellColumn, cellRow) {
   const startingRowIndex = cellRow;
   
   const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(sheetName);
-  const range = sheet.getRange(startingRowIndex, startingColIndex, numRows, numCols);
+  const printRange = sheet.getRange(startingRowIndex, startingColIndex, numRows, numCols);
+  
+  // Clear out the columns that the new stats will be printed into
+  const numRowsToClear = sheet.getLastRow() - cellRow + 1; // e.g. (3 to 100) is 98 rows
+  const rangeToClear = sheet.getRange(startingRowIndex, startingColIndex, numRowsToClear, numCols);
+  rangeToClear.clearContent();
   
   // Array will be printed on sheetName starting at, and extending down and to the right of, the cell at (cellColumn,cellRow)
-  range.setValues(arrayToPrint);
+  printRange.setValues(arrayToPrint);
 }
 
 
