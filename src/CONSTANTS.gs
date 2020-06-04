@@ -70,6 +70,13 @@
   
   const SPECIAL_SUBMISSION_SECONDARY_RECORD = "Secondary Record"; // name of the special submission item on form that is used to indicate a submission to Secondary Records
   
+  
+// Move To Older Submissions Constants:
+  const SUBMISSIONS_START_ROW = 3; // rows above this on submissions sheet are to be ignored as they are mere example rows
+                                   // rows >= to this row are actual submissions, and can be moved to older submissions sheet
+
+  const OLDER_SUBMISSIONS_SHEET_ID = "1iYS59nu9EOwu2fct0SaOxVV8ZwQBXld94AVvFdUggfo";
+  const OLDER_SUBMISSIONS_SHEET_NAME = "OlderSubmissions"; // the sheet tab where the older submissions are stored
 
 // WR_APPROVAL CONSTANTS -- END ---------------------------------------------------------------------
 
@@ -82,7 +89,6 @@
   const SPECIAL_SUBMISSION_HIGHEST_ARRAS_SCORES = "Highest Arras Scores"; // name of the special submission item on form that is used to indicate a submission to HAS
 
   const MINIMUM_SCORE_FOR_HIGHEST_ARRAS_SCORES = 2000000; // 2 mil at the moment
-
 
 
 // ADD_TO_HAS CONSTANTS -- END ---------------------------------------------------------------------
