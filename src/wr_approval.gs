@@ -13,7 +13,7 @@ function EDITS_ARE_VALID_FOR_RUNNING_SCRIPT(event) {
   
   const newCellValueAfterEdit = (event.value).toLowerCase();
   
-  if (newCellValueAfterEdit !== SCRIPT_LAUNCH_CHARACTER) {
+  if (newCellValueAfterEdit !== SCRIPT_LAUNCH_CHARACTER.toLowerCase()) {
     return false;  
   }
   
@@ -159,7 +159,7 @@ function FORMAT_SCORE(score) {
   }
   
   else {
-    return (score / 1000).toFixed(0) + "k";
+    return (score / 1000).toFixed(2) + "k";
   }
 }
 
@@ -174,7 +174,8 @@ function ADD_APPROVED_WR_TO_SHEET_AND_CALL_PLAYER_STATS(values, recordRow, recor
   const recordRange = recordsSheet.getRange(recordRow, recordCol, 1, 3); // 1-indexed
   recordRange.setValues(newRecordArray);
   
-  // update the values array with the newly approved submission, before calling Player_Tank_Stats() on it  
+  // update the values array with the newly approved submission, before calling Player_Tank_Stats() on it
+  // values array is zero-indexed  
   values[recordRow - 1][recordCol - 1] = submissionScore;
   values[recordRow - 1][recordCol]     = submissionPlayerName;
   values[recordRow - 1][recordCol + 1] = submissionProofLink;
