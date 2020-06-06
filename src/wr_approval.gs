@@ -24,10 +24,17 @@ function WR_APPROVAL_DRIVER(event, values) {
   
   // then, destructure array into individual variables
   const [submissionScore, submissionPlayerName, submissionProofLink, submissionTank, submissionGamemode, submissionSpecialSubmission] = submissionDetailsArray;
-  
-  // if gamemode is event, then see if score can be added to Legacy HAS and return early if so
-  if (ADD_EVENT_HIGH_SCORES_TO_LEGACY_HAS(submissionDetailsArray, editedCell)) return;
     
+  
+  // if wr manager uses the Legacy Launch Sequence 'leg' on people submitting older screenshots for instance
+  // or if gamemode is event, then see if score can be added to Legacy HAS and return early if so
+  // is not error checked, since legacy submissions may have removed tanks/gamemodes or event gamemodes not on the sheet
+  if (event.value === LEGACY_LAUNCH_CHARACTER) {
+    ADD_SCORE_TO_LEGACY_HAS(submissionDetailsArray, editedCell);
+    return;  
+  }
+  
+  
   // get 1-indexed row and col of the record to replace on the sheet
   // return value of -1 means that the tank/gamemode was not found
   const recordRow = GET_TANK_ROW_1_INDEXED(values, submissionTank); // 1-indexed (actual wr sheet row)
@@ -36,10 +43,18 @@ function WR_APPROVAL_DRIVER(event, values) {
   
   // return early if any errors found with finding tank/gamemode, or if submission is secondary record
   // and reset the edited cell back to its previous value
-  if (ERRORS_PRESENT_IN_SUBMISSION_DETAILS(recordRow, recordCol, submissionTank, submissionGamemode, submissionSpecialSubmission)) {
+  if (ERRORS_PRESENT_IN_SUBMISSION_DETAILS(recordRow, recordCol, submissionTank, submissionGamemode, submissionSpecialSubmission) ) {
     editedCell.setValue(event.oldValue);
-    return;  
+    return;
   }
+  
+  
+  // if 'h' launch character is used to only approve for HAS, then do that and return early
+  if (event.value === HAS_ONLY_LAUNCH_CHARACTER) {
+    ONLY_APPROVE_FOR_HAS(submissionDetailsArray, editedCell);
+    return;
+  }
+  
   
   
   // values array is 0-indexed, so we need to subtact 1 from recordRow and recordCol to get the correct oldRecordScore
@@ -119,14 +134,16 @@ function EDITS_ARE_VALID_FOR_RUNNING_SCRIPT(event) {
   const editedColumn = String.fromCharCode(event.range.getColumn() + 'A'.charCodeAt(0) - 1);
   
   if (editedColumn !== SUBMISSION_STATUS_COLUMN) {
-    return false;  
+    return false;
   }
   
   
   const newCellValueAfterEdit = (event.value).toLowerCase();
   
-  if (newCellValueAfterEdit !== SCRIPT_LAUNCH_CHARACTER.toLowerCase()) {
-    return false;  
+  if (newCellValueAfterEdit !== SCRIPT_LAUNCH_CHARACTER.toLowerCase() 
+        && newCellValueAfterEdit !== HAS_ONLY_LAUNCH_CHARACTER
+        && newCellValueAfterEdit !== LEGACY_LAUNCH_CHARACTER) {
+    return false;
   }
   
   
@@ -298,66 +315,6 @@ function ADD_APPROVED_WR_TO_SHEET_AND_CALL_PLAYER_STATS(values, recordRow, recor
   // update Player/Tank Stats by calling Player_Tank_Stats(),
   // since script-based editing doesnt naturally set off an onEdit trigger
   PLAYER_TANK_STATS_DRIVER(values);
-}
-
-
-
-// appends the submission as a new row on bottom of the HAS staging sheet if score is >= minimum for HAS
-// returns true if score was >= min and thus added successfully
-// returns false otherwise when score < min and thus not added successfully
-function ADD_HAS_SUBMISSION_TO_HAS(submissionDetailsArray, isLegacySubmission) {
-  
-  const submissionScore = submissionDetailsArray[0];
-  
-  if (submissionScore >= MINIMUM_SCORE_FOR_HIGHEST_ARRAS_SCORES) {
-  
-    // get everything in submissionDetailsArray except the last thing
-    // (specialSubmission, like HAS or Secondary Record)
-    const newHASArray = submissionDetailsArray.slice(0, -1);
-    
-    // add the legacy indication char at the end of the new array
-    // and make the gamemode just say "Event"
-    if (isLegacySubmission) {
-      newHASArray.push(LEGACY_HAS_INDICATION_CHARACTER);
-      newHASArray[4] = "Event";
-    }
-    
-    const hasStagingSheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(HAS_STAGING_SHEET_NAME);
-    hasStagingSheet.appendRow(newHASArray);
-    
-    return true;
-  }
-  
-  return false;
-}
-
-
-// for when player submits a high score done in an Event gamemode (D-Day, Assault, etc...)
-// these scores are not valid wr's and cannot go on the normal HAS
-// however they can be added to the Legacy HAS, which this function takes care of:
-function ADD_EVENT_HIGH_SCORES_TO_LEGACY_HAS(submissionDetailsArray, editedCell) {
-
-  // destructure array into individual variables
-  const [submissionScore, submissionPlayerName, submissionProofLink, submissionTank, submissionGamemode, submissionSpecialSubmission] = submissionDetailsArray;
-  
-  // return early if submission gamemode isn't the Event Legacy HAS one
-  if (submissionGamemode !== EVENT_GAMEMODE_NAME_ON_SUBMISSION_FORM) return false;
-  
-  
-  // add to HAS the normal way, but 2nd argument tells the ADD_TO_HAS function that its a legacy one
-  // and to append an extra character in last column that tells spreadsheet to sort the score into the Legacy Sheet
-  // if this function returns true, that means that everything went well and score was added
-  if (ADD_HAS_SUBMISSION_TO_HAS(submissionDetailsArray, true)) {
-    Browser.msgBox("LEGACY HAS EVENT SUBMISSION APPROVED", `${PRINT_SUBMISSION_DETAILS(submissionDetailsArray)} has been added to Legacy Highest Arras Scores`, Browser.Buttons.OK);
-    editedCell.setValue(APPROVED_STATUS_CHARACTER);
-  }
-  // else means that the function returned false, and that the score was not high enough for Legacy HAS
-  else {
-    Browser.msgBox("LEGACY HAS EVENT SUBMISSION REJECTED", `${PRINT_SUBMISSION_DETAILS(submissionDetailsArray)} is lower than the minimum score needed for Legacy Highest Arras Scores, currently ${FORMAT_SCORE(MINIMUM_SCORE_FOR_HIGHEST_ARRAS_SCORES)}`, Browser.Buttons.OK);
-    editedCell.setValue(REJECTED_STATUS_CHARACTER);
-  }
-  
-  return true;
 }
 
 
