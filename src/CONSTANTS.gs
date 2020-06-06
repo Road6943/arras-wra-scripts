@@ -92,3 +92,31 @@
 
 
 // ADD_TO_HAS CONSTANTS -- END ---------------------------------------------------------------------
+
+
+// ADD_EVENT_SCORES_TO_LEGACY_HAS CONSTANTS -- BEGIN -------------------------------------------------
+
+  const EVENT_GAMEMODE_NAME_ON_SUBMISSION_FORM = "Event (for Legacy HAS only)";
+
+  const LEGACY_HAS_INDICATION_CHARACTER = 'k'; // in HAS calculations, this indicates that a score belongs on the legacy has
+
+// ADD_EVENT_SCORES_TO_LEGACY_HAS CONSTANTS -- END -------------------------------------------------
+
+
+
+
+// GET_DATA_FOR_WEBSITE CONSTANTS -- BEGIN: ---------------------------------------------------------------------
+  
+
+  const SHEETS_TO_GET_DATA_FROM = ["WR Rules", "Records", "Highest Arras Scores", "Player/Tank Stats", "Secondary Records"];
+  
+  // printing to WR Rules is only temporary
+  // this can't stay because printing to wr rules
+  // means the printed data becomes part of wr rules itself, and will exceed the cell char limit
+  const RANGE_TO_PRINT_DATA_TO = "'WR Rules'!E5:H9"; // the range from where the website will retireve a json feed of cell data  
+                                                     // make sure its 4 cols wide, and (SHEETS_TO_GET_DATA_FROM.length) rows tall
+
+  const MAX_CHARS_PER_CELL = 50000; // this is the max number of characters that a cell in Google Sheets can hold
+
+
+// GET_DATA_FOR_WEBSITE CONSTANTS -- END: ---------------------------------------------------------------------
