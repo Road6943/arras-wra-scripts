@@ -1,3 +1,115 @@
+
+// main entry point to this file, controls which functions get called when
+function WR_APPROVAL_DRIVER(event, values) {
+    
+  // return early if edit is not in Submission Status column or is not the Approval Letter
+  if (!EDITS_ARE_VALID_FOR_RUNNING_SCRIPT(event)) {
+    return;  
+  }
+  
+    
+  // get score, name, proofLink, tank, gamemode, specialSubmission
+  const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SUBMISSIONS_SHEET_NAME);
+  
+  const editedRowOneIndex = event.range.getRow(); // this returns the same row number as on the actual sheet
+  const editedColOneIndex = event.range.getColumn() // returns 1-indexed column integer (B -> 2)
+  const editedCell = sheet.getRange(editedRowOneIndex, editedColOneIndex); // gets the cell that was edited
+  
+  // getRange parameters are (row, col, numRows, numCols)
+  // start col at the editedCol + 1, since we don't need the Submission Status
+  // return 1 row, and 6 cols - score, name, proofLink, tank, gamemode, specialSubmission
+  // also the row and col are 1-indexed, not 0-indexed
+  // the [0] at the end is because getRange returns a 2d array, so we need to grab the 1st (and only) row in it
+  const submissionDetailsArray = sheet.getRange(editedRowOneIndex, editedColOneIndex + 1, 1, 6).getValues()[0];
+  
+  // then, destructure array into individual variables
+  const [submissionScore, submissionPlayerName, submissionProofLink, submissionTank, submissionGamemode, submissionSpecialSubmission] = submissionDetailsArray;
+  
+  // if gamemode is event, then see if score can be added to Legacy HAS and return early if so
+  if (ADD_EVENT_HIGH_SCORES_TO_LEGACY_HAS(submissionDetailsArray, editedCell)) return;
+    
+  // get 1-indexed row and col of the record to replace on the sheet
+  // return value of -1 means that the tank/gamemode was not found
+  const recordRow = GET_TANK_ROW_1_INDEXED(values, submissionTank); // 1-indexed (actual wr sheet row)
+  const recordCol = GET_GAMEMODE_SCORE_COL_1_INDEXED(values, submissionGamemode); // 1-indexed column number of the score column for the given gamemode (A=1, B=2, etc)
+  
+  
+  // return early if any errors found with finding tank/gamemode, or if submission is secondary record
+  // and reset the edited cell back to its previous value
+  if (ERRORS_PRESENT_IN_SUBMISSION_DETAILS(recordRow, recordCol, submissionTank, submissionGamemode, submissionSpecialSubmission)) {
+    editedCell.setValue(event.oldValue);
+    return;  
+  }
+  
+  
+  // values array is 0-indexed, so we need to subtact 1 from recordRow and recordCol to get the correct oldRecordScore
+  const oldRecordScore = values[recordRow - 1][recordCol - 1];
+  
+  
+  // WR submission is too low, and not an HAS submission
+  if (submissionSpecialSubmission !== SPECIAL_SUBMISSION_HIGHEST_ARRAS_SCORES 
+        && submissionScore <= oldRecordScore) { 
+    
+    Browser.msgBox("WR SUBMISSION REJECTED", `The following submission:\\n\\n${FORMAT_SCORE(submissionScore)} ${submissionTank}\\n${submissionGamemode}\\n${submissionPlayerName}\\n\\n is lower than the current wr of ${FORMAT_SCORE(oldRecordScore)}`, Browser.Buttons.OK);
+    editedCell.setValue(REJECTED_STATUS_CHARACTER);
+  }
+
+
+  // WR submission is higher than old WR, and its not an HAS submission
+  else if (submissionSpecialSubmission !== SPECIAL_SUBMISSION_HIGHEST_ARRAS_SCORES 
+             && submissionScore > oldRecordScore) { 
+    
+    Browser.msgBox("WR SUBMISSION APPROVED", `The following submission:\\n\\n${FORMAT_SCORE(submissionScore)} ${submissionTank}\\n${submissionGamemode}\\n${submissionPlayerName}\\n\\n has replaced the previous wr of ${FORMAT_SCORE(oldRecordScore)}`, Browser.Buttons.OK);
+    editedCell.setValue(APPROVED_STATUS_CHARACTER);
+
+    ADD_APPROVED_WR_TO_SHEET_AND_CALL_PLAYER_STATS(values, recordRow, recordCol, submissionScore, submissionPlayerName, submissionProofLink);
+  }
+  
+  
+  // WR submission is too low, but its also an HAS submission
+  else if (submissionSpecialSubmission === SPECIAL_SUBMISSION_HIGHEST_ARRAS_SCORES
+             && submissionScore <= oldRecordScore) {
+    
+    const hasSubmissionAddedSuccessfully = ADD_HAS_SUBMISSION_TO_HAS(submissionDetailsArray, false);
+    
+    if (hasSubmissionAddedSuccessfully) {
+      
+      Browser.msgBox("HAS SUBMISSION APPROVED", `The following submission:\\n\\n${FORMAT_SCORE(submissionScore)} ${submissionTank}\\n${submissionGamemode}\\n${submissionPlayerName}\\n\\n has been added to Highest Arras Scores`, Browser.Buttons.OK);
+      editedCell.setValue(APPROVED_STATUS_CHARACTER);  
+    }
+    else {
+      
+      Browser.msgBox("WR & HAS SUBMISSIONS BOTH REJECTED", `The following submission:\\n\\n${FORMAT_SCORE(submissionScore)} ${submissionTank}\\n${submissionGamemode}\\n${submissionPlayerName}\\n\\n is lower than the current wr of ${FORMAT_SCORE(oldRecordScore)}\\nand is lower than the minimum score needed for Highest Arras Scores, currently ${FORMAT_SCORE(MINIMUM_SCORE_FOR_HIGHEST_ARRAS_SCORES)}`, Browser.Buttons.OK);
+      editedCell.setValue(REJECTED_STATUS_CHARACTER);
+    }
+  }
+  
+
+  
+  // WR submission is higher than old WR, and its also an HAS submission
+  else if (submissionSpecialSubmission === SPECIAL_SUBMISSION_HIGHEST_ARRAS_SCORES
+             && submissionScore > oldRecordScore) {
+    
+    ADD_APPROVED_WR_TO_SHEET_AND_CALL_PLAYER_STATS(values, recordRow, recordCol, submissionScore, submissionPlayerName, submissionProofLink);
+    editedCell.setValue(APPROVED_STATUS_CHARACTER);  
+    
+    const hasSubmissionAddedSuccessfully = ADD_HAS_SUBMISSION_TO_HAS(submissionDetailsArray, false);
+    
+    if (hasSubmissionAddedSuccessfully) {
+      
+      Browser.msgBox("WR & HAS SUBMISSIONS BOTH APPROVED", `The following submission:\\n\\n${FORMAT_SCORE(submissionScore)} ${submissionTank}\\n${submissionGamemode}\\n${submissionPlayerName}\\n\\n has replaced the previous wr of ${FORMAT_SCORE(oldRecordScore)}\\nand has been added to Highest Arras Scores`, Browser.Buttons.OK);
+    }
+    else {
+      
+      Browser.msgBox("WR SUBMISSION APPROVED, HAS SUBMISSION REJECTED", `The following submission:\\n\\n${FORMAT_SCORE(submissionScore)} ${submissionTank}\\n${submissionGamemode}\\n${submissionPlayerName}\\n\\n has replaced the previous wr of ${FORMAT_SCORE(oldRecordScore)}\\nbut is lower than the minimum score needed for Highest Arras Scores, currently ${FORMAT_SCORE(MINIMUM_SCORE_FOR_HIGHEST_ARRAS_SCORES)}`, Browser.Buttons.OK);
+    }
+  }
+}
+
+
+
+
+
 // Makes sure that the rest of script only runs when SCRIPT_LAUNCH_CHARACTER is entered in SUBMISSION_STATUS_COLUMN
 function EDITS_ARE_VALID_FOR_RUNNING_SCRIPT(event) {
   
@@ -151,7 +263,7 @@ function ERRORS_PRESENT_IN_SUBMISSION_DETAILS(recordRow, recordCol, submissionTa
 }
 
 
-// 123456 --> 123k, and 1234567 --> 1.23mil
+// 123456 --> 123.46k, and 1234567 --> 1.23mil
 function FORMAT_SCORE(score) {
   
   if (score >= 1000000) {
@@ -193,7 +305,7 @@ function ADD_APPROVED_WR_TO_SHEET_AND_CALL_PLAYER_STATS(values, recordRow, recor
 // appends the submission as a new row on bottom of the HAS staging sheet if score is >= minimum for HAS
 // returns true if score was >= min and thus added successfully
 // returns false otherwise when score < min and thus not added successfully
-function ADD_HAS_SUBMISSION_TO_HAS(submissionDetailsArray) {
+function ADD_HAS_SUBMISSION_TO_HAS(submissionDetailsArray, isLegacySubmission) {
   
   const submissionScore = submissionDetailsArray[0];
   
@@ -202,6 +314,13 @@ function ADD_HAS_SUBMISSION_TO_HAS(submissionDetailsArray) {
     // get everything in submissionDetailsArray except the last thing
     // (specialSubmission, like HAS or Secondary Record)
     const newHASArray = submissionDetailsArray.slice(0, -1);
+    
+    // add the legacy indication char at the end of the new array
+    // and make the gamemode just say "Event"
+    if (isLegacySubmission) {
+      newHASArray.push(LEGACY_HAS_INDICATION_CHARACTER);
+      newHASArray[4] = "Event";
+    }
     
     const hasStagingSheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(HAS_STAGING_SHEET_NAME);
     hasStagingSheet.appendRow(newHASArray);
@@ -213,108 +332,30 @@ function ADD_HAS_SUBMISSION_TO_HAS(submissionDetailsArray) {
 }
 
 
+// for when player submits a high score done in an Event gamemode (D-Day, Assault, etc...)
+// these scores are not valid wr's and cannot go on the normal HAS
+// however they can be added to the Legacy HAS, which this function takes care of:
+function ADD_EVENT_HIGH_SCORES_TO_LEGACY_HAS(submissionDetailsArray, editedCell) {
 
-// main entry point to this file, controls which functions get called when
-function WR_APPROVAL_DRIVER(event, values) {
-    
-  // return early if edit is not in Submission Status column or is not the Approval Letter
-  if (!EDITS_ARE_VALID_FOR_RUNNING_SCRIPT(event)) {
-    return;  
-  }
-  
-    
-  // get score, name, proofLink, tank, gamemode, specialSubmission
-  const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SUBMISSIONS_SHEET_NAME);
-  
-  const editedRowOneIndex = event.range.getRow(); // this returns the same row number as on the actual sheet
-  const editedColOneIndex = event.range.getColumn() // returns 1-indexed column integer (B -> 2)
-  const editedCell = sheet.getRange(editedRowOneIndex, editedColOneIndex); // gets the cell that was edited
-  
-  // getRange parameters are (row, col, numRows, numCols)
-  // start col at the editedCol + 1, since we don't need the Submission Status
-  // return 1 row, and 6 cols - score, name, proofLink, tank, gamemode, specialSubmission
-  // also the row and col are 1-indexed, not 0-indexed
-  // the [0] at the end is because getRange returns a 2d array, so we need to grab the 1st (and only) row in it
-  const submissionDetailsArray = sheet.getRange(editedRowOneIndex, editedColOneIndex + 1, 1, 6).getValues()[0];
-  
-  // then, destructure array into individual variables
+  // destructure array into individual variables
   const [submissionScore, submissionPlayerName, submissionProofLink, submissionTank, submissionGamemode, submissionSpecialSubmission] = submissionDetailsArray;
   
-    
-  // get 1-indexed row and col of the record to replace on the sheet
-  // return value of -1 means that the tank/gamemode was not found
-  const recordRow = GET_TANK_ROW_1_INDEXED(values, submissionTank); // 1-indexed (actual wr sheet row)
-  const recordCol = GET_GAMEMODE_SCORE_COL_1_INDEXED(values, submissionGamemode); // 1-indexed column number of the score column for the given gamemode (A=1, B=2, etc)
+  // return early if submission gamemode isn't the Event Legacy HAS one
+  if (submissionGamemode !== EVENT_GAMEMODE_NAME_ON_SUBMISSION_FORM) return false;
   
   
-  // return early if any errors found with finding tank/gamemode, or if submission is secondary record
-  // and reset the edited cell back to its previous value
-  if (ERRORS_PRESENT_IN_SUBMISSION_DETAILS(recordRow, recordCol, submissionTank, submissionGamemode, submissionSpecialSubmission)) {
-    editedCell.setValue(event.oldValue);
-    return;  
+  // add to HAS the normal way, but 2nd argument tells the ADD_TO_HAS function that its a legacy one
+  // and to append an extra character in last column that tells spreadsheet to sort the score into the Legacy Sheet
+  // if this function returns true, that means that everything went well and score was added
+  if (ADD_HAS_SUBMISSION_TO_HAS(submissionDetailsArray, true)) {
+    Browser.msgBox("LEGACY HAS EVENT SUBMISSION APPROVED", `The following submission:\\n\\n${FORMAT_SCORE(submissionScore)} ${submissionTank}\\n${submissionGamemode}\\n${submissionPlayerName}\\n\\n has been added to Legacy Highest Arras Scores`, Browser.Buttons.OK);
+    editedCell.setValue(APPROVED_STATUS_CHARACTER);
   }
-  
-  
-  // values array is 0-indexed, so we need to subtact 1 from recordRow and recordCol to get the correct oldRecordScore
-  const oldRecordScore = values[recordRow - 1][recordCol - 1];
-  
-  
-  // WR submission is too low, and not an HAS submission
-  if (submissionSpecialSubmission !== SPECIAL_SUBMISSION_HIGHEST_ARRAS_SCORES 
-        && submissionScore <= oldRecordScore) { 
-    
-    Browser.msgBox("WR SUBMISSION REJECTED", `The following submission:\\n\\n${FORMAT_SCORE(submissionScore)} ${submissionTank}\\n${submissionGamemode}\\n${submissionPlayerName}\\n\\n is lower than the current wr of ${FORMAT_SCORE(oldRecordScore)}`, Browser.Buttons.OK);
+  // else means that the function returned false, and that the score was not high enough for Legacy HAS
+  else {
+    Browser.msgBox("LEGACY HAS EVENT SUBMISSION REJECTED", `The following submission:\\n\\n${FORMAT_SCORE(submissionScore)} ${submissionTank}\\n${submissionGamemode}\\n${submissionPlayerName}\\n\\n is lower than the minimum score needed for Legacy Highest Arras Scores, currently ${FORMAT_SCORE(MINIMUM_SCORE_FOR_HIGHEST_ARRAS_SCORES)}`, Browser.Buttons.OK);
     editedCell.setValue(REJECTED_STATUS_CHARACTER);
   }
-
-
-  // WR submission is higher than old WR, and its not an HAS submission
-  else if (submissionSpecialSubmission !== SPECIAL_SUBMISSION_HIGHEST_ARRAS_SCORES 
-             && submissionScore > oldRecordScore) { 
-    
-    Browser.msgBox("WR SUBMISSION APPROVED", `The following submission:\\n\\n${FORMAT_SCORE(submissionScore)} ${submissionTank}\\n${submissionGamemode}\\n${submissionPlayerName}\\n\\n has replaced the previous wr of ${FORMAT_SCORE(oldRecordScore)}`, Browser.Buttons.OK);
-    editedCell.setValue(APPROVED_STATUS_CHARACTER);
-
-    ADD_APPROVED_WR_TO_SHEET_AND_CALL_PLAYER_STATS(values, recordRow, recordCol, submissionScore, submissionPlayerName, submissionProofLink);
-  }
   
-  
-  // WR submission is too low, but its also an HAS submission
-  else if (submissionSpecialSubmission === SPECIAL_SUBMISSION_HIGHEST_ARRAS_SCORES
-             && submissionScore <= oldRecordScore) {
-    
-    const hasSubmissionAddedSuccessfully = ADD_HAS_SUBMISSION_TO_HAS(submissionDetailsArray);
-    
-    if (hasSubmissionAddedSuccessfully) {
-      
-      Browser.msgBox("HAS SUBMISSION APPROVED", `The following submission:\\n\\n${FORMAT_SCORE(submissionScore)} ${submissionTank}\\n${submissionGamemode}\\n${submissionPlayerName}\\n\\n has been added to Highest Arras Scores`, Browser.Buttons.OK);
-      editedCell.setValue(APPROVED_STATUS_CHARACTER);  
-    }
-    else {
-      
-      Browser.msgBox("WR & HAS SUBMISSIONS BOTH REJECTED", `The following submission:\\n\\n${FORMAT_SCORE(submissionScore)} ${submissionTank}\\n${submissionGamemode}\\n${submissionPlayerName}\\n\\n is lower than the current wr of ${FORMAT_SCORE(oldRecordScore)}\\nand is lower than the minimum score needed for Highest Arras Scores, currently ${FORMAT_SCORE(MINIMUM_SCORE_FOR_HIGHEST_ARRAS_SCORES)}`, Browser.Buttons.OK);
-      editedCell.setValue(REJECTED_STATUS_CHARACTER);
-    }
-  }
-  
-
-  
-  // WR submission is higher than old WR, and its also an HAS submission
-  else if (submissionSpecialSubmission === SPECIAL_SUBMISSION_HIGHEST_ARRAS_SCORES
-             && submissionScore > oldRecordScore) {
-    
-    ADD_APPROVED_WR_TO_SHEET_AND_CALL_PLAYER_STATS(values, recordRow, recordCol, submissionScore, submissionPlayerName, submissionProofLink);
-    editedCell.setValue(APPROVED_STATUS_CHARACTER);  
-    
-    const hasSubmissionAddedSuccessfully = ADD_HAS_SUBMISSION_TO_HAS(submissionDetailsArray);
-    
-    if (hasSubmissionAddedSuccessfully) {
-      
-      Browser.msgBox("WR & HAS SUBMISSIONS BOTH APPROVED", `The following submission:\\n\\n${FORMAT_SCORE(submissionScore)} ${submissionTank}\\n${submissionGamemode}\\n${submissionPlayerName}\\n\\n has replaced the previous wr of ${FORMAT_SCORE(oldRecordScore)}\\nand has been added to Highest Arras Scores`, Browser.Buttons.OK);
-    }
-    else {
-      
-      Browser.msgBox("WR SUBMISSION APPROVED, HAS SUBMISSION REJECTED", `The following submission:\\n\\n${FORMAT_SCORE(submissionScore)} ${submissionTank}\\n${submissionGamemode}\\n${submissionPlayerName}\\n\\n has replaced the previous wr of ${FORMAT_SCORE(oldRecordScore)}\\nbut is lower than the minimum score needed for Highest Arras Scores, currently ${FORMAT_SCORE(MINIMUM_SCORE_FOR_HIGHEST_ARRAS_SCORES)}`, Browser.Buttons.OK);
-    }
-  }
+  return true;
 }
