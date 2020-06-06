@@ -50,7 +50,7 @@ function WR_APPROVAL_DRIVER(event, values) {
   if (submissionSpecialSubmission !== SPECIAL_SUBMISSION_HIGHEST_ARRAS_SCORES 
         && submissionScore <= oldRecordScore) { 
     
-    Browser.msgBox("WR SUBMISSION REJECTED", `The following submission:\\n\\n${FORMAT_SCORE(submissionScore)} ${submissionTank}\\n${submissionGamemode}\\n${submissionPlayerName}\\n\\n is lower than the current wr of ${FORMAT_SCORE(oldRecordScore)}`, Browser.Buttons.OK);
+    Browser.msgBox("WR SUBMISSION REJECTED", `${PRINT_SUBMISSION_DETAILS(submissionDetailsArray)} is lower than the current wr of ${FORMAT_SCORE(oldRecordScore)}`, Browser.Buttons.OK);
     editedCell.setValue(REJECTED_STATUS_CHARACTER);
   }
 
@@ -59,7 +59,7 @@ function WR_APPROVAL_DRIVER(event, values) {
   else if (submissionSpecialSubmission !== SPECIAL_SUBMISSION_HIGHEST_ARRAS_SCORES 
              && submissionScore > oldRecordScore) { 
     
-    Browser.msgBox("WR SUBMISSION APPROVED", `The following submission:\\n\\n${FORMAT_SCORE(submissionScore)} ${submissionTank}\\n${submissionGamemode}\\n${submissionPlayerName}\\n\\n has replaced the previous wr of ${FORMAT_SCORE(oldRecordScore)}`, Browser.Buttons.OK);
+    Browser.msgBox("WR SUBMISSION APPROVED", `${PRINT_SUBMISSION_DETAILS(submissionDetailsArray)} has replaced the previous wr of ${FORMAT_SCORE(oldRecordScore)}`, Browser.Buttons.OK);
     editedCell.setValue(APPROVED_STATUS_CHARACTER);
 
     ADD_APPROVED_WR_TO_SHEET_AND_CALL_PLAYER_STATS(values, recordRow, recordCol, submissionScore, submissionPlayerName, submissionProofLink);
@@ -74,12 +74,12 @@ function WR_APPROVAL_DRIVER(event, values) {
     
     if (hasSubmissionAddedSuccessfully) {
       
-      Browser.msgBox("HAS SUBMISSION APPROVED", `The following submission:\\n\\n${FORMAT_SCORE(submissionScore)} ${submissionTank}\\n${submissionGamemode}\\n${submissionPlayerName}\\n\\n has been added to Highest Arras Scores`, Browser.Buttons.OK);
+      Browser.msgBox("HAS SUBMISSION APPROVED", `${PRINT_SUBMISSION_DETAILS(submissionDetailsArray)} has been added to Highest Arras Scores`, Browser.Buttons.OK);
       editedCell.setValue(APPROVED_STATUS_CHARACTER);  
     }
     else {
       
-      Browser.msgBox("WR & HAS SUBMISSIONS BOTH REJECTED", `The following submission:\\n\\n${FORMAT_SCORE(submissionScore)} ${submissionTank}\\n${submissionGamemode}\\n${submissionPlayerName}\\n\\n is lower than the current wr of ${FORMAT_SCORE(oldRecordScore)}\\nand is lower than the minimum score needed for Highest Arras Scores, currently ${FORMAT_SCORE(MINIMUM_SCORE_FOR_HIGHEST_ARRAS_SCORES)}`, Browser.Buttons.OK);
+      Browser.msgBox("WR & HAS SUBMISSIONS BOTH REJECTED", `${PRINT_SUBMISSION_DETAILS(submissionDetailsArray)} is lower than the current wr of ${FORMAT_SCORE(oldRecordScore)}\\nand is lower than the minimum score needed for Highest Arras Scores, currently ${FORMAT_SCORE(MINIMUM_SCORE_FOR_HIGHEST_ARRAS_SCORES)}`, Browser.Buttons.OK);
       editedCell.setValue(REJECTED_STATUS_CHARACTER);
     }
   }
@@ -97,11 +97,11 @@ function WR_APPROVAL_DRIVER(event, values) {
     
     if (hasSubmissionAddedSuccessfully) {
       
-      Browser.msgBox("WR & HAS SUBMISSIONS BOTH APPROVED", `The following submission:\\n\\n${FORMAT_SCORE(submissionScore)} ${submissionTank}\\n${submissionGamemode}\\n${submissionPlayerName}\\n\\n has replaced the previous wr of ${FORMAT_SCORE(oldRecordScore)}\\nand has been added to Highest Arras Scores`, Browser.Buttons.OK);
+      Browser.msgBox("WR & HAS SUBMISSIONS BOTH APPROVED", `${PRINT_SUBMISSION_DETAILS(submissionDetailsArray)} has replaced the previous wr of ${FORMAT_SCORE(oldRecordScore)}\\nand has been added to Highest Arras Scores`, Browser.Buttons.OK);
     }
     else {
       
-      Browser.msgBox("WR SUBMISSION APPROVED, HAS SUBMISSION REJECTED", `The following submission:\\n\\n${FORMAT_SCORE(submissionScore)} ${submissionTank}\\n${submissionGamemode}\\n${submissionPlayerName}\\n\\n has replaced the previous wr of ${FORMAT_SCORE(oldRecordScore)}\\nbut is lower than the minimum score needed for Highest Arras Scores, currently ${FORMAT_SCORE(MINIMUM_SCORE_FOR_HIGHEST_ARRAS_SCORES)}`, Browser.Buttons.OK);
+      Browser.msgBox("WR SUBMISSION APPROVED, HAS SUBMISSION REJECTED", `${PRINT_SUBMISSION_DETAILS(submissionDetailsArray)} has replaced the previous wr of ${FORMAT_SCORE(oldRecordScore)}\\nbut is lower than the minimum score needed for Highest Arras Scores, currently ${FORMAT_SCORE(MINIMUM_SCORE_FOR_HIGHEST_ARRAS_SCORES)}`, Browser.Buttons.OK);
     }
   }
 }
@@ -348,14 +348,25 @@ function ADD_EVENT_HIGH_SCORES_TO_LEGACY_HAS(submissionDetailsArray, editedCell)
   // and to append an extra character in last column that tells spreadsheet to sort the score into the Legacy Sheet
   // if this function returns true, that means that everything went well and score was added
   if (ADD_HAS_SUBMISSION_TO_HAS(submissionDetailsArray, true)) {
-    Browser.msgBox("LEGACY HAS EVENT SUBMISSION APPROVED", `The following submission:\\n\\n${FORMAT_SCORE(submissionScore)} ${submissionTank}\\n${submissionGamemode}\\n${submissionPlayerName}\\n\\n has been added to Legacy Highest Arras Scores`, Browser.Buttons.OK);
+    Browser.msgBox("LEGACY HAS EVENT SUBMISSION APPROVED", `${PRINT_SUBMISSION_DETAILS(submissionDetailsArray)} has been added to Legacy Highest Arras Scores`, Browser.Buttons.OK);
     editedCell.setValue(APPROVED_STATUS_CHARACTER);
   }
   // else means that the function returned false, and that the score was not high enough for Legacy HAS
   else {
-    Browser.msgBox("LEGACY HAS EVENT SUBMISSION REJECTED", `The following submission:\\n\\n${FORMAT_SCORE(submissionScore)} ${submissionTank}\\n${submissionGamemode}\\n${submissionPlayerName}\\n\\n is lower than the minimum score needed for Legacy Highest Arras Scores, currently ${FORMAT_SCORE(MINIMUM_SCORE_FOR_HIGHEST_ARRAS_SCORES)}`, Browser.Buttons.OK);
+    Browser.msgBox("LEGACY HAS EVENT SUBMISSION REJECTED", `${PRINT_SUBMISSION_DETAILS(submissionDetailsArray)} is lower than the minimum score needed for Legacy Highest Arras Scores, currently ${FORMAT_SCORE(MINIMUM_SCORE_FOR_HIGHEST_ARRAS_SCORES)}`, Browser.Buttons.OK);
     editedCell.setValue(REJECTED_STATUS_CHARACTER);
   }
   
   return true;
+}
+
+
+
+// makes printing the Browser.msgBox messages a litte nicer
+function PRINT_SUBMISSION_DETAILS(submissionDetailsArray) {
+  
+  // destructure array into individual variables
+  const [submissionScore, submissionPlayerName, submissionProofLink, submissionTank, submissionGamemode, submissionSpecialSubmission] = submissionDetailsArray;
+  
+  return `The following submission:\\n\\n${FORMAT_SCORE(submissionScore)} ${submissionTank}\\n${submissionGamemode}\\n${submissionPlayerName}\\n\\n`;
 }
