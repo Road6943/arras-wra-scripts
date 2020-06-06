@@ -90,17 +90,22 @@
 
   const MINIMUM_SCORE_FOR_HIGHEST_ARRAS_SCORES = 2000000; // 2 mil at the moment
 
+  const HAS_ONLY_LAUNCH_CHARACTER = 'h'; // for when you want to approve an HAS submission but not a WR submission, like maybe theres not enough screenshots to approve a wr
+
 
 // ADD_TO_HAS CONSTANTS -- END ---------------------------------------------------------------------
 
 
-// ADD_EVENT_SCORES_TO_LEGACY_HAS CONSTANTS -- BEGIN -------------------------------------------------
+// ADD_TO_LEGACY_HAS CONSTANTS -- BEGIN -------------------------------------------------
 
-  const EVENT_GAMEMODE_NAME_ON_SUBMISSION_FORM = "Event (for Legacy HAS only)";
+  const LEGACY_LAUNCH_CHARACTER = "leg"; // I'm making it 3 chars instead of 1, because its rare to approve something for legacy, 
+                                         // and because 'l' is right next to 'k' on keyboard so I don't want accidental finger slips
+
+  const EVENT_GAMEMODE_NAME_ON_SUBMISSION_FORM = "Event (for Legacy HAS only)"; // event gamemodes automatically go to legacy and nowhere else
 
   const LEGACY_HAS_INDICATION_CHARACTER = 'k'; // in HAS calculations, this indicates that a score belongs on the legacy has
 
-// ADD_EVENT_SCORES_TO_LEGACY_HAS CONSTANTS -- END -------------------------------------------------
+// ADD_TO_LEGACY_HAS CONSTANTS -- END -------------------------------------------------
 
 
 
