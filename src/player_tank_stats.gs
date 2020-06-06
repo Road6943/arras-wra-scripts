@@ -1,3 +1,17 @@
+// main entry point to this file, controls which functions get called when
+function PLAYER_TANK_STATS_DRIVER(values) {
+  
+  const playerArray = GET_PLAYER_STATS(values);
+  const tankArray = GET_TANK_STATS(values);
+  
+  PRINT_ARRAY(playerArray, PLAYER_SHEET_TO_DISPLAY_RESULTS_ON, PLAYER_COLUMN_OF_TOP_LEFT_CELL, PLAYER_ROW_OF_TOP_LEFT_CELL);
+  PRINT_ARRAY(tankArray, TANK_SHEET_TO_DISPLAY_RESULTS_ON, TANK_COLUMN_OF_TOP_LEFT_CELL, TANK_ROW_OF_TOP_LEFT_CELL);
+}
+
+
+
+
+
 function GET_PLAYER_STATS(values) {
   
   const startingRowZeroIndex = STARTING_ROW - 1;
@@ -138,12 +152,3 @@ function PRINT_ARRAY(arrayToPrint, sheetName, cellColumn, cellRow) {
 
 
 
-// main entry point to this file, controls which functions get called when
-function PLAYER_TANK_STATS_DRIVER(values) {
-  
-  const playerArray = GET_PLAYER_STATS(values);
-  const tankArray = GET_TANK_STATS(values);
-  
-  PRINT_ARRAY(playerArray, PLAYER_SHEET_TO_DISPLAY_RESULTS_ON, PLAYER_COLUMN_OF_TOP_LEFT_CELL, PLAYER_ROW_OF_TOP_LEFT_CELL);
-  PRINT_ARRAY(tankArray, TANK_SHEET_TO_DISPLAY_RESULTS_ON, TANK_COLUMN_OF_TOP_LEFT_CELL, TANK_ROW_OF_TOP_LEFT_CELL);
-}
