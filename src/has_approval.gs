@@ -16,7 +16,11 @@ function ADD_HAS_SUBMISSION_TO_HAS(submissionDetailsArray, isLegacySubmission) {
     // and make the gamemode just say "Event"
     if (isLegacySubmission) {
       newHASArray.push(LEGACY_HAS_INDICATION_CHARACTER);
-      newHASArray[4] = "Event";
+      
+      // change event submission gamemode name to shorter version for sheet
+      if (newHASArray[4] === EVENT_GAMEMODE_NAME_ON_SUBMISSION_FORM) {
+        newHASArray[4] = EVENT_GAMEMODE_NAME_ON_SHEET;
+      }
     }
     
     const hasStagingSheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(HAS_STAGING_SHEET_NAME);
