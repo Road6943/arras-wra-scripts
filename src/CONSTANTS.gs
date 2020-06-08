@@ -102,6 +102,8 @@
                                          // and because 'l' is right next to 'k' on keyboard so I don't want accidental finger slips
 
   const EVENT_GAMEMODE_NAME_ON_SUBMISSION_FORM = "Event (for Legacy HAS only)"; // event gamemodes automatically go to legacy and nowhere else
+  const EVENT_GAMEMODE_NAME_ON_SHEET = "Event"; // a shorter nicer version of the above for the spreadsheet
+
 
   const LEGACY_HAS_INDICATION_CHARACTER = 'k'; // in HAS calculations, this indicates that a score belongs on the legacy has
 
