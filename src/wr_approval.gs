@@ -65,8 +65,8 @@ function WR_APPROVAL_DRIVER(event, values) {
   if (submissionSpecialSubmission !== SPECIAL_SUBMISSION_HIGHEST_ARRAS_SCORES 
         && submissionScore <= oldRecordScore) { 
     
-    Browser.msgBox("WR SUBMISSION REJECTED", `${PRINT_SUBMISSION_DETAILS(submissionDetailsArray)} is lower than the current wr of ${FORMAT_SCORE(oldRecordScore)}`, Browser.Buttons.OK);
     editedCell.setValue(REJECTED_STATUS_CHARACTER);
+    Browser.msgBox("WR SUBMISSION REJECTED", `${PRINT_SUBMISSION_DETAILS(submissionDetailsArray)} is lower than the current wr of ${FORMAT_SCORE(oldRecordScore)}`, Browser.Buttons.OK);
   }
 
 
@@ -74,10 +74,10 @@ function WR_APPROVAL_DRIVER(event, values) {
   else if (submissionSpecialSubmission !== SPECIAL_SUBMISSION_HIGHEST_ARRAS_SCORES 
              && submissionScore > oldRecordScore) { 
     
-    Browser.msgBox("WR SUBMISSION APPROVED", `${PRINT_SUBMISSION_DETAILS(submissionDetailsArray)} has replaced the previous wr of ${FORMAT_SCORE(oldRecordScore)}`, Browser.Buttons.OK);
     editedCell.setValue(APPROVED_STATUS_CHARACTER);
-
     ADD_APPROVED_WR_TO_SHEET_AND_CALL_PLAYER_STATS(values, recordRow, recordCol, submissionScore, submissionPlayerName, submissionProofLink);
+    
+    Browser.msgBox("WR SUBMISSION APPROVED", `${PRINT_SUBMISSION_DETAILS(submissionDetailsArray)} has replaced the previous wr of ${FORMAT_SCORE(oldRecordScore)}`, Browser.Buttons.OK);
   }
   
   
@@ -89,13 +89,13 @@ function WR_APPROVAL_DRIVER(event, values) {
     
     if (hasSubmissionAddedSuccessfully) {
       
-      Browser.msgBox("HAS SUBMISSION APPROVED", `${PRINT_SUBMISSION_DETAILS(submissionDetailsArray)} has been added to Highest Arras Scores`, Browser.Buttons.OK);
       editedCell.setValue(APPROVED_STATUS_CHARACTER);  
+      Browser.msgBox("HAS SUBMISSION APPROVED", `${PRINT_SUBMISSION_DETAILS(submissionDetailsArray)} has been added to Highest Arras Scores`, Browser.Buttons.OK);
     }
     else {
       
-      Browser.msgBox("WR & HAS SUBMISSIONS BOTH REJECTED", `${PRINT_SUBMISSION_DETAILS(submissionDetailsArray)} is lower than the current wr of ${FORMAT_SCORE(oldRecordScore)}\\nand is lower than the minimum score needed for Highest Arras Scores, currently ${FORMAT_SCORE(MINIMUM_SCORE_FOR_HIGHEST_ARRAS_SCORES)}`, Browser.Buttons.OK);
       editedCell.setValue(REJECTED_STATUS_CHARACTER);
+      Browser.msgBox("WR & HAS SUBMISSIONS BOTH REJECTED", `${PRINT_SUBMISSION_DETAILS(submissionDetailsArray)} is lower than the current wr of ${FORMAT_SCORE(oldRecordScore)}\\nand is lower than the minimum score needed for Highest Arras Scores, currently ${FORMAT_SCORE(MINIMUM_SCORE_FOR_HIGHEST_ARRAS_SCORES)}`, Browser.Buttons.OK);
     }
   }
   
