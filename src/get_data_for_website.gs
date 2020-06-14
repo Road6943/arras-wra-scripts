@@ -79,7 +79,7 @@ function formatWRSheetValues(values, tankPics)
 }
 
 
-// return array like [["FFA", "#00f00f"], ["2TDM", "#123456"], ...]
+// return array like ["FFA", "#00f00f", "2TDM", "#123456", ...] where gamemode name is followed by its color
 function getGamemodesAndTheirColors(sheet)
 {  
   const rowOneIndex = GAMEMODE_NAMES_ROW;
@@ -110,7 +110,8 @@ function getGamemodesAndTheirColors(sheet)
       break;
     }
     
-    arrayToReturn.push( [valuesArray[i], colorsArray[i]] );
+    arrayToReturn.push(valuesArray[i]);
+    arrayToReturn.push(colorsArray[i]);
   }
   
   arrayToReturn = JSON.stringify(arrayToReturn); // turn into string
