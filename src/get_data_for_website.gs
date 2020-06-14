@@ -100,15 +100,9 @@ function getGamemodesAndTheirColors(sheet)
   // += 3 because gamemode name cells are 3 columns apart
   for (let i = startColumnZeroIndex; i < numCols; i += 3)
   {
-    // repeated colors indicate the sheet's generic background color in the empty
-    // spacing columns on the very far right, which means you've finished
-    // going through all gamemodes --> break immediately and pop last element in return array
-    // also ignore the very first iteration since theres nothing to compare against before it
-    if (i > startColumnZeroIndex && colorsArray[i] === arrayToReturn[arrayToReturn.length - 1][1])
-    {
-      arrayToReturn.pop();
-      break;
-    }
+    // nonexistent values means youve reached end of gamemodes and are at the
+    // spacing columns on the very far right, --> break immediately
+    if (!valuesArray[i]) break;
     
     arrayToReturn.push(valuesArray[i]);
     arrayToReturn.push(colorsArray[i]);
