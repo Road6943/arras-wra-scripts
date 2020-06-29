@@ -75,6 +75,8 @@
   const SUBMISSIONS_START_ROW = 3; // rows above this on submissions sheet are to be ignored as they are mere example rows
                                    // rows >= to this row are actual submissions, and can be moved to older submissions sheet
 
+  const NUM_REQUIRED_COLUMNS = 7; // number of continuous columns starting from the left that are required to be filled out (currently the 7 columns from timestamp to gamemode)
+
   const OLDER_SUBMISSIONS_SHEET_ID = "1iYS59nu9EOwu2fct0SaOxVV8ZwQBXld94AVvFdUggfo";
   const OLDER_SUBMISSIONS_SHEET_NAME = "OlderSubmissions"; // the sheet tab where the older submissions are stored
 
