@@ -28,6 +28,16 @@ function GET_ROWS_TO_MOVE(submissionsSheet)
   // in case they're all 'v' or 'x', so that the google form doesn't get confused and screw up
   for (i = startRowZeroIndex; i < submissionsArray.length - 1; ++i)
   {
+    // breaks if you've reached the end of actual submission rows, in case theres messages left
+    // by wr managers below the actual submission rows
+    // also decrements i to ensure that the last row removed is the one before the current iteration 
+    // (so that at least 1 valid submission row remains on the main sheet)
+    if (END_OF_ACTUAL_SUBMISSIONS_REACHED(submissionsArray[i]))
+    {
+      i--;
+      break;
+    }
+    
     const submissionStatus = submissionsArray[i][1];
     
     // 'v' and 'x' submissions have been taken care of and can be moved over
@@ -71,4 +81,23 @@ function PASTE_ROWS_INTO_OLDER_SUBMISSIONS(moveOverArray, notesArray)
   const submissionStatusColumnOneIndex = SUBMISSION_STATUS_COLUMN.charCodeAt(0) - 'A'.charCodeAt(0) + 1;
   const notesRangeToPasteInto = olderSubmissionsSheet.getRange(startRow, submissionStatusColumnOneIndex, notesArray.length, 1); // 1-indexed
   notesRangeToPasteInto.setNotes(notesArray);
+}
+
+
+// sometimes certain wr managers will leave random messages on the sheet below the end of the actual submissions for various reasons
+// this will cause google sheets to think that the actual end of the sheet is the messages left by the wr managers under the submissions
+// and in turn every single row of submissions will be moved to older submissions, without leaving a single row behind to help orient
+// the placement of new form submissions (the form submissions will go a row below where they should be and leave a gap or even overwrite old rows)
+// this function helps prevent that by breaking the loop once the actual submission rows end
+// it does this by checking to make sure that the 7 mandatory form fields (timestamp to gamemode) are all filled
+function END_OF_ACTUAL_SUBMISSIONS_REACHED(submissionRow)
+{
+  const row = submissionRow.slice(0,7); // get all the column values required to be filled out on the form
+  
+  for (const cell of row)
+  {
+    if (cell !== 0 && !cell) return true; // return true if any of the first few required cells are empty and not 0
+  }
+  
+  return false;
 }
