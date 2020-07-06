@@ -280,6 +280,8 @@ function ERRORS_PRESENT_IN_SUBMISSION_DETAILS(recordRow, recordCol, submissionTa
 
 
 // 123456 --> 123.46k, and 1234567 --> 1.23mil
+// also here's the spreadsheet's custom number format formula for comparison: 
+// [<999999]0.00,"k";[<999999999]0.00,,"mil"
 function FORMAT_SCORE(score) {
   
   if (score >= 10**6) {
