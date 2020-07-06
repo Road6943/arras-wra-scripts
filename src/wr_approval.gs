@@ -1,18 +1,17 @@
-
 // main entry point to this file, controls which functions get called when
-function WR_APPROVAL_DRIVER(event, values) {
+function WR_APPROVAL_DRIVER(values, eventRow, eventColumn, eventValue, eventOldValue) {
     
   // return early if edit is not in Submission Status column or is not the Approval Letter
-  if (!EDITS_ARE_VALID_FOR_RUNNING_SCRIPT(event)) {
+  if (!EDITS_ARE_VALID_FOR_RUNNING_SCRIPT(eventColumn, eventValue)) {
     return;  
   }
   
-    
+  
   // get score, name, proofLink, tank, gamemode, specialSubmission
   const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SUBMISSIONS_SHEET_NAME);
   
-  const editedRowOneIndex = event.range.getRow(); // this returns the same row number as on the actual sheet
-  const editedColOneIndex = event.range.getColumn() // returns 1-indexed column integer (B -> 2)
+  const editedRowOneIndex = eventRow; // this returns the same row number as on the actual sheet
+  const editedColOneIndex = eventColumn; // returns 1-indexed column integer (B -> 2)
   const editedCell = sheet.getRange(editedRowOneIndex, editedColOneIndex); // gets the cell that was edited
   
   // getRange parameters are (row, col, numRows, numCols)
@@ -29,7 +28,7 @@ function WR_APPROVAL_DRIVER(event, values) {
   // if wr manager uses the Legacy Launch Sequence 'leg' on people submitting older screenshots for instance
   // or if gamemode is event, then see if score can be added to Legacy HAS and return early if so
   // is not error checked, since legacy submissions may have removed tanks/gamemodes or event gamemodes not on the sheet
-  if (event.value === LEGACY_LAUNCH_CHARACTER) {
+  if (eventValue === LEGACY_LAUNCH_CHARACTER) {
     ADD_SCORE_TO_LEGACY_HAS(submissionDetailsArray, editedCell);
     return;  
   }
@@ -44,13 +43,13 @@ function WR_APPROVAL_DRIVER(event, values) {
   // return early if any errors found with finding tank/gamemode, or if submission is secondary record
   // and reset the edited cell back to its previous value
   if (ERRORS_PRESENT_IN_SUBMISSION_DETAILS(recordRow, recordCol, submissionTank, submissionGamemode, submissionSpecialSubmission) ) {
-    editedCell.setValue(event.oldValue);
+    editedCell.setValue(eventOldValue);
     return;
   }
   
   
   // if 'h' launch character is used to only approve for HAS, then do that and return early
-  if (event.value === HAS_ONLY_LAUNCH_CHARACTER) {
+  if (eventValue === HAS_ONLY_LAUNCH_CHARACTER) {
     ONLY_APPROVE_FOR_HAS(submissionDetailsArray, editedCell);
     return;
   }
@@ -126,19 +125,19 @@ function WR_APPROVAL_DRIVER(event, values) {
 
 
 // Makes sure that the rest of script only runs when SCRIPT_LAUNCH_CHARACTER is entered in SUBMISSION_STATUS_COLUMN
-function EDITS_ARE_VALID_FOR_RUNNING_SCRIPT(event) {
+function EDITS_ARE_VALID_FOR_RUNNING_SCRIPT(eventColumn, eventValue) {
   
-  // event.range.getColumn returns a 1-indexed (NOT 0-indexed) integer,
+  // event .range.getColumn returns a 1-indexed (NOT 0-indexed) integer,
   // indicating how many columns over from left side of sheet a specific column is (A = 1, B = 2)
   // this code converts that integer back into the actual Column Letter (2 back into B)
-  const editedColumn = String.fromCharCode(event.range.getColumn() + 'A'.charCodeAt(0) - 1);
+  const editedColumn = String.fromCharCode(eventColumn + 'A'.charCodeAt(0) - 1);
   
   if (editedColumn !== SUBMISSION_STATUS_COLUMN) {
     return false;
   }
   
   
-  const newCellValueAfterEdit = (event.value).toLowerCase();
+  const newCellValueAfterEdit = (eventValue).toLowerCase();
   
   if (newCellValueAfterEdit !== SCRIPT_LAUNCH_CHARACTER.toLowerCase() 
         && newCellValueAfterEdit !== HAS_ONLY_LAUNCH_CHARACTER
@@ -168,7 +167,7 @@ function GET_TANK_ROW_1_INDEXED(values, tankName) {
   const tankNamesColZeroIndex = TANK_NAMES_COLUMN.charCodeAt(0) - 'A'.charCodeAt(0); // (A -> 0), (B -> 1), etc...
   const startingRowZeroIndex = STARTING_ROW - 1;
   
-  const numRows = values.length
+  const numRows = values.length;
   
   // iterate over the entire tanknames column and return the row you find the given tankname at
   for (let row = startingRowZeroIndex; row < numRows; ++row) {
@@ -283,10 +282,9 @@ function ERRORS_PRESENT_IN_SUBMISSION_DETAILS(recordRow, recordCol, submissionTa
 // 123456 --> 123.46k, and 1234567 --> 1.23mil
 function FORMAT_SCORE(score) {
   
-  if (score >= 1000000) {
-    return (score / 1000000).toFixed(2) + "mil";
+  if (score >= 10**6) {
+    return (score / 10**6).toFixed(2) + "mil";
   }
-  
   else {
     return (score / 1000).toFixed(2) + "k";
   }
