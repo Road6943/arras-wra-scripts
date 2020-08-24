@@ -1,3 +1,9 @@
+// functions that run when the Burger Button (button in top right of submissions sheet) is clicked
+function BURGER_BUTTON_FUNCTION() {
+  MOVE_TO_OLDER_SUBMISSIONS_DRIVER();
+  getDataForWebsite(); // This updates the wra website - road6943.github.io/wra - whenever the burger button is clicked, in order to keep the website semi-up-to-date
+}
+
 function onEdit(event) {
   
   const editedSheetName = event.range.getSheet().getName();
