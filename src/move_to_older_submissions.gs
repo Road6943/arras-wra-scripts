@@ -3,8 +3,6 @@
 // update: I added a button to the Submissions sheet that runs this function when clicked
 function MOVE_TO_OLDER_SUBMISSIONS_DRIVER()
 {
-  getDataForWebsite(); // This updates the wra website - road6943.github.io/wra - whenever the burger button is clicked, in order to keep the website semi-up-to-date
-  
   const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SUBMISSIONS_SHEET_NAME);
 
   const moveOverArray = GET_ROWS_TO_MOVE(sheet);
