@@ -127,3 +127,27 @@
 
 
 // GET_DATA_FOR_WEBSITE CONSTANTS -- END: ---------------------------------------------------------------------
+
+// PLAYER_RANKINGS CONSTANTS -- BEGIN --------------------------------------------------------------------------
+
+// tanks that belong in each category, along with their minimum scores to be included in the script's rankings
+// no spaces or dashes allowed
+const PLAYER_RANKINGS_CATEGORIES = {
+  "Destroyers": {minScore: 3e6, players: {}, tanks: ["destroyer", "hybrid", "annihilator", "conqueror"]},
+  "Drones": {minScore: 2.5e6,  players: {}, tanks: ["director", "overseer", "overlord", "overtrapper", "overgunner", "banshee", "autooverseer", "overdrive"]},
+  "Bullet Tri-Angles": {minScore: 3e6,  players: {}, tanks: ["triangle", "fighter", "booster", "bomber", "autotriangle", "surfer", "eagle"]},
+  "Rammers": {minScore: 2.5e6,  players: {}, tanks: []}, // we need to make a way to indicate ram scores, or else this won't work at all (currently ram scores are distributed into the other categories)
+  "Cruiser Branch": {minScore: 1.5e6,  players: {}, tanks: ["cruiser", "carrier", "battleship", "fortress"]},
+  "Crowd Control Tanks": {minScore: 2e6,  players: {}, tanks: []},
+  "Trappers": {minScore: 1.5e6,  players: {}, tanks: []},
+  "Underseer Branch": {minScore: 1.5e6,  players: {}, tanks: ["underseer", "necromancer", "maleficitor"]},
+  "Snipers": {minScore: 3e6,  players: {}, tanks: []},
+  "Focused Spammers": {minScore: 2e6,  players: {}, tanks: []},
+}
+
+const PLAYER_RANKINGS_START_ROW_ZERO_INDEX = 3;
+const PLAYER_RANKINGS_SHEET_TO_PRINT_TO = "Sheet24";
+const PLAYER_RANKINGS_PRINT_START_ROW_ONE_INDEX = 9;
+const PLAYER_RANKINGS_PRINT_START_COL = 'B';
+
+// PLAYER_RANKINGS CONSTANTS -- END --------------------------------------------------------------------------
