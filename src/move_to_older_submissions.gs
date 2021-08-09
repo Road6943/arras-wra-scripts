@@ -21,7 +21,7 @@ function GET_ROWS_TO_MOVE(submissionsSheet)
 {
   const submissionsArray = submissionsSheet.getDataRange().getValues();
   const startRowZeroIndex = SUBMISSIONS_START_ROW - 1; // subtract 1 since sheet is 1-indexed, but array is 0-indexed
-   
+  
   let i; // Please don't replace this with a var. It won't break the code or anything, I just think var is bad practice.
   
   // loop only goes to len - 1 because I want to leave at least one row on the sheet
@@ -42,12 +42,17 @@ function GET_ROWS_TO_MOVE(submissionsSheet)
     
     // 'v' and 'x' submissions have been taken care of and can be moved over
     // everything else is not taken care of, so only move stuff above them
-    if (submissionStatus !== APPROVED_STATUS_CHARACTER && submissionStatus !== REJECTED_STATUS_CHARACTER)
+    let moveableSubmissionStatusDetected = [
+      APPROVED_STATUS_CHARACTER, 
+      REJECTED_STATUS_CHARACTER
+    ].includes(submissionStatus.toLowerCase());
+    
+    if (!moveableSubmissionStatusDetected)
     {
       break;
     }
   }
-  
+
   // gets array from start row to just before first non-movable row
   const moveOverArray = submissionsArray.slice(startRowZeroIndex, i);
   
