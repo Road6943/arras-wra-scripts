@@ -21,7 +21,6 @@ function onEdit(event) {
   // whenever theres a new tank or gamemode
   const values = sheet.getDataRange().getValues();
   
-  
   // if edited sheet is the records sheet only, then trigger the PLAYER_TANK_STATS_DRIVER() function only
   // this is for when a wr manager directly edits the records sheet, such as by approving records the old way 
   // through copy/paste or the even older way of manual editing
@@ -40,5 +39,8 @@ function onEdit(event) {
     const eventOldValue = event.oldValue; // previous cell value
     
     WR_APPROVAL_DRIVER(values, eventRow, eventColumn, eventValue, eventOldValue);
+    
+    //uncomment to troll other wrm's
+    // if (['k', 'h', 'v', 'x', 'leg'].includes(event.value.toLowerCase())) { event.range.setValue(BEE_MOVIE_SCRIPT.replaceAll("\n", " ").slice(0,49999)); Browser.msgBox(`🐝`); }
   }
 }
