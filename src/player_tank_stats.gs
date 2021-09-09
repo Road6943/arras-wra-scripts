@@ -1,6 +1,5 @@
 // main entry point to this file, controls which functions get called when
 function PLAYER_TANK_STATS_DRIVER(values) {
-  
   const playerArray = GET_PLAYER_STATS(values);
   const tankArray = GET_TANK_STATS(values);
   
@@ -21,7 +20,7 @@ function GET_PLAYER_STATS(values) {
   const numCols = values[startingRowZeroIndex].length;
     
   let playerObj = {};
-  
+
   // iterate through every record, and adjust each player's numRecords and combinedRecordScore
   for (let row = startingRowZeroIndex; row < numRows; ++row) {  
     for (let col = startingColZeroIndex; col < numCols; col += 3) { // yes, its += 3
@@ -29,13 +28,19 @@ function GET_PLAYER_STATS(values) {
       // if the proof link cell is empty, then you're currently not looking at a record and should skip ahead
       // for example, the blank row between tier 1,2,3,4 tank records or the gamemode name rows
       const proofLink = values[row][col + 2];
-      if (proofLink === "") {
-        continue;
-      }
-      
       const score = values[row][col]
       const name = values[row][col + 1];
-      
+
+      // remove all "" empty strings, all null values, and all whitespace-only strings for proofLink, score, name
+      const arrToValidate = [proofLink, score, name];
+      if (arrToValidate.includes(null)
+          // ensure string type first because null can't be trimmed
+          // then trim to cover whitespace-only str's like " " and "  "
+          || arrToValidate.filter(x => (typeof x === 'string')).map(x => x.trim()).includes("")
+      ){
+        continue;
+      }
+
       // if player already exists in object, then adjust their properties accordingly
       // else, then it is the first record of that player that we have come across
       // so give make their numRecords = 1, and combinedRecordsScore = score
@@ -49,7 +54,6 @@ function GET_PLAYER_STATS(values) {
       
     }
   }
-  
   
   let playerArray = [];
   
@@ -75,7 +79,6 @@ function GET_PLAYER_STATS(values) {
     const playerArrayRow = [playerName, playerObj[playerName].numRecords, playerObj[playerName].combinedRecordScore, playerObj[playerName].ratio, playerObj[playerName].ratioPlayerNameFormat];
     playerArray.push(playerArrayRow);
   }
-  
   
   return playerArray;
 }
