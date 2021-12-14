@@ -1,8 +1,10 @@
+// Sometimes this custom function just displays Loading... in the score cell whenever the sheet is loaded anew
+
 /**
- * Get the highest record within a certain range. The range must contain exactly 3 columns (score/playerName/proofLink) and must start at the same row as basic tank. For example, the range for FFA is C17:E.
+ * Get the highest record within a certain range. The range must contain exactly 3 columns (score/playerName/proofLink) and must start at the same row as basic tank. For example, the range for FFA is C17:E. The tankNamesRange should be the column of tank names starting from Basic Tank onwards. Currently it should always be $B17:$B. The dollar signs are there to prevent the range from changing when the formula is dragged around.
  * @customfunction
  */
-function GET_HIGHEST_RECORD_IN_RANGE(range) {  
+function GET_HIGHEST_RECORD_IN_RANGE(range, tankNamesRange) {  
   /* OLD WAY (using spreadsheet formulas):
     These are the 3 formulas used for FFA:
     =MAX(C17:C)
@@ -16,12 +18,6 @@ function GET_HIGHEST_RECORD_IN_RANGE(range) {
     return [["ERROR: The range passed in must be 3 columns wide (score/playerName/proofLink)!"]];
   }
 
-  const recordsSheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(WR_SHEET_NAME);
-  // tankNamesRange is something like B17:B
-  const tankNamesRange = recordsSheet.getRange(TANK_NAMES_COLUMN + STARTING_ROW + ":" + TANK_NAMES_COLUMN);
-  // convert 2d array to 1d array
-  const tankNames = tankNamesRange.getValues().map(x => x[0]);
-
   let highestRecordArr = range[0];
 
   for (let i = 0; i < range.length; i++) {
@@ -32,8 +28,8 @@ function GET_HIGHEST_RECORD_IN_RANGE(range) {
       // if new score is higher than current max, set the highest record to the new record
       highestRecordArr = recordArr;
 
-      // change the playerName of highest to include the tankName in parentheses
-      highestRecordArr[1] += " (" + tankNames[i] + ")";
+      // change the playerName of highest to include the tank name in parentheses
+      highestRecordArr[1] += " (" + tankNamesRange[i][0] + ")";
     }
   }
 
