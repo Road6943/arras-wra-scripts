@@ -3,7 +3,8 @@
 // add in the scoring system that Skrialik posted in wram channel
 // figure out how to do rammers rankings
 // add all tanks to correct categories in Constants.gs
-// push all files, not just this one, to github
+// push all changed files, not just this one, to github - this, constants, main
+// switch order of functions for burger button, so moving to older submissions happens last
 
 function PLAYER_RANKINGS_DRIVER() {
   const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(HAS_STAGING_SHEET_NAME);
@@ -84,19 +85,19 @@ function MAKE_PLAYER_RANKINGS(Categories) {
     playersArray.sort((a,b) => b[1].length - a[1].length); // sort players based on how many scores they have in current category
     
     for (const [player, scoresArray] of playersArray) {
-      let msg = "";
+      let summary = "";
       
       for (const item of scoresArray) {
         const [score, player, proofLink, tank, gamemode] = item;
         
-        msg += `- ${FORMAT_SCORE(score)} ${tank} ${gamemode}\n`; // FORMAT_SCORE is in a different file
+        summary += `- ${FORMAT_SCORE(score)} ${tank} ${gamemode}\n`; // FORMAT_SCORE is in a different file
       }
       
-      if (msg !== "") {
-        msg = `${player}\n${msg}`; // add player name at top for non-empty cells (empty cells are when player has no scores in current category)
+      if (summary !== "") {
+        summary = `${player}\n${summary}`; // add player name at top for non-empty cells (empty cells are when player has no scores in current category)
       }
       
-      categoryArray.push([msg]);
+      categoryArray.push([summary]);
     }
     
     arrayToPrint.push(categoryArray);
