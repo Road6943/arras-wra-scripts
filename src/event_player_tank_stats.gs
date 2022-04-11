@@ -132,25 +132,4 @@ function GET_EVENT_TANK_STATS(eventValues) {
   return tankArray;
 }
 
-
-
-function PRINT_ARRAY(arrayToPrint, sheetName, cellColumn, cellRow) {
-  
-  const numRows = arrayToPrint.length;
-  const numCols = arrayToPrint[0].length;
-  
-  // These are NOT zero-indexed, they start at 1
-  const startingColIndex = cellColumn.charCodeAt(0) - 'A'.charCodeAt(0) + 1; // 1-indexed, not 0-indexed
-  const startingRowIndex = cellRow;
-  
-  const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(sheetName);
-  const printRange = sheet.getRange(startingRowIndex, startingColIndex, numRows, numCols);
-  
-  // Clear out the columns that the new stats will be printed into
-  const numRowsToClear = sheet.getLastRow() - cellRow + 1; // e.g. (3 to 100) is 98 rows
-  const rangeToClear = sheet.getRange(startingRowIndex, startingColIndex, numRowsToClear, numCols);
-  rangeToClear.clearContent();
-  
-  // Array will be printed on sheetName starting at, and extending down and to the right of, the cell at (cellColumn,cellRow)
-  printRange.setValues(arrayToPrint);
-}
+// deleted this files PRINT_ARRAY to avoid issues with name conflict later
