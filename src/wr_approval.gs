@@ -23,6 +23,21 @@ function WR_APPROVAL_DRIVER(values, eventRow, eventColumn, eventValue, eventOldV
   
   // then, destructure array into individual variables
   const [submissionScore, submissionPlayerName, submissionProofLink, submissionTank, submissionGamemode, submissionSpecialSubmission] = submissionDetailsArray;
+
+  let isEventRecord = false;
+
+  // if we're dealing with an event record, use the EVENT WR SHEET values instead of the main Records Sheet values
+  if (submissionSpecialSubmission === SPECIAL_SUBMISSION_EVENT_RECORD) {
+    values = (
+      SpreadsheetApp
+        .getActiveSpreadsheet()
+        .getSheetByName(EVENT_WR_SHEET_NAME)
+        .getDataRange()
+        .getValues()
+    )
+
+    isEventRecord = true;
+  }
     
   
   // if wr manager uses the Legacy Launch Sequence 'leg' on people submitting older screenshots for instance
@@ -53,13 +68,64 @@ function WR_APPROVAL_DRIVER(values, eventRow, eventColumn, eventValue, eventOldV
     ONLY_APPROVE_FOR_HAS(submissionDetailsArray, editedCell);
     return;
   }
-  
-  
-  
+
   // values array is 0-indexed, so we need to subtact 1 from recordRow and recordCol to get the correct oldRecordScore
   const oldRecordScore = values[recordRow - 1][recordCol - 1];
+
+  
+  // if 'eve' launch text is used to only approve for EAS, then do only that and return early
+  if (eventValue === EVENT_LAUNCH_CHARACTER) {
+    ADD_SCORE_TO_EAS(submissionDetailsArray, editedCell);
+    return;
+    
+    // handle event records that may or may not also be for EAS
+  } else if (submissionSpecialSubmission === SPECIAL_SUBMISSION_EVENT_RECORD) {
+    let eventRecordApproved = false;
+    let easApproved = false;
+
+    // event record
+    if (submissionScore > oldRecordScore) {
+      editedCell.setValue(APPROVED_STATUS_CHARACTER);
+      eventRecordApproved = true;
+
+      // last param === isEventRecord
+      ADD_APPROVED_WR_TO_SHEET_AND_CALL_PLAYER_STATS(
+        values, recordRow, recordCol, submissionScore, submissionPlayerName, submissionProofLink, true
+      );
+      
+    } else {
+      // record too low
+      editedCell.setValue(REJECTED_STATUS_CHARACTER);
+    }
+
+    // EAS
+    if (submissionScore > MINIMUM_SCORE_FOR_EVENT_ARRAS_SCORES) {
+      editedCell.setValue(APPROVED_STATUS_CHARACTER);
+      easApproved = true;
+      ADD_SCORE_TO_EAS(submissionDetailsArray, editedCell, false);
+    }
+
+    
+
+    if (eventRecordApproved && easApproved) {
+      Browser.msgBox("EVENT RECORD & EAS SUBMISSION BOTH APPROVED", `${PRINT_SUBMISSION_DETAILS(submissionDetailsArray)} has replaced the previous event record of ${FORMAT_SCORE(oldRecordScore)} and has been added to Event Arras Scores`, Browser.Buttons.OK);
+
+    } else if (eventRecordApproved) {
+      Browser.msgBox("EVENT RECORD SUBMISSION APPROVED", `${PRINT_SUBMISSION_DETAILS(submissionDetailsArray)} has replaced the previous event record of ${FORMAT_SCORE(oldRecordScore)}`, Browser.Buttons.OK);
+
+    } else if (easApproved) {
+      Browser.msgBox("EAS SUBMISSION APPROVED", `${PRINT_SUBMISSION_DETAILS(submissionDetailsArray)} has been added to Event Arras Scores`, Browser.Buttons.OK);
+
+    } else {
+      Browser.msgBox("EVENT RECORD & EAS SUBMISSIONS BOTH REJECTED", `${PRINT_SUBMISSION_DETAILS(submissionDetailsArray)} is lower than the current event record of ${FORMAT_SCORE(oldRecordScore)}\\nand is lower than the minimum score needed for Event Arras Scores, currently ${FORMAT_SCORE(MINIMUM_SCORE_FOR_EVENT_ARRAS_SCORES)}`, Browser.Buttons.OK);
+    }
+
+    return;
+  }
   
   
+
+
   // WR submission is too low, and not an HAS submission
   if (submissionSpecialSubmission !== SPECIAL_SUBMISSION_HIGHEST_ARRAS_SCORES 
         && submissionScore <= oldRecordScore) { 
@@ -141,7 +207,8 @@ function EDITS_ARE_VALID_FOR_RUNNING_SCRIPT(eventColumn, eventValue) {
   
   if (newCellValueAfterEdit !== SCRIPT_LAUNCH_CHARACTER.toLowerCase() 
         && newCellValueAfterEdit !== HAS_ONLY_LAUNCH_CHARACTER
-        && newCellValueAfterEdit !== LEGACY_LAUNCH_CHARACTER) {
+        && newCellValueAfterEdit !== LEGACY_LAUNCH_CHARACTER
+        && newCellValueAfterEdit !== EVENT_LAUNCH_CHARACTER) {
     return false;
   }
   
@@ -279,11 +346,15 @@ function ERRORS_PRESENT_IN_SUBMISSION_DETAILS(recordRow, recordCol, submissionTa
 }
 
 
-// 123456 --> 123.46k, and 1234567 --> 1.23mil
-// also here's the spreadsheet's custom number format formula for comparison: 
-// [<999999]0.00,"k";[<999999999]0.00,,"mil"
+
+/**
+ * Converts a score like 123456 to 123.46k, and 1234567 to 1.23mil
+ * also here's the spreadsheet's custom number format formula for comparison: 
+ * [<999999]0.00,"k";[<999999999]0.00,,"mil"
+ */
 function FORMAT_SCORE(score) {
-  
+  score = Number(score);
+
   if (score >= 10**6) {
     return (score / 10**6).toFixed(2) + "mil";
   }
@@ -295,11 +366,15 @@ function FORMAT_SCORE(score) {
 
 
 // add wr to sheet and call player_stats
-function ADD_APPROVED_WR_TO_SHEET_AND_CALL_PLAYER_STATS(values, recordRow, recordCol, submissionScore, submissionPlayerName, submissionProofLink) {
+function ADD_APPROVED_WR_TO_SHEET_AND_CALL_PLAYER_STATS(
+  values, recordRow, recordCol, submissionScore, submissionPlayerName, submissionProofLink, isEventRecord=false) {
   
   //replace old record with new record
   const newRecordArray = [[submissionScore, submissionPlayerName, submissionProofLink]]; // needs to be a 2d array, hence the double [[]]
-  const recordsSheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(WR_SHEET_NAME); 
+  
+  let recordsSheetName = isEventRecord ? EVENT_WR_SHEET_NAME : WR_SHEET_NAME;
+  let recordsSheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(recordsSheetName); 
+
   const recordRange = recordsSheet.getRange(recordRow, recordCol, 1, 3); // 1-indexed
   recordRange.setValues(newRecordArray);
   
@@ -314,7 +389,11 @@ function ADD_APPROVED_WR_TO_SHEET_AND_CALL_PLAYER_STATS(values, recordRow, recor
   
   // update Player/Tank Stats by calling Player_Tank_Stats(),
   // since script-based editing doesnt naturally set off an onEdit trigger
-  PLAYER_TANK_STATS_DRIVER(values);
+  if (isEventRecord) {
+    EVENT_PLAYER_TANK_STATS_DRIVER(values);
+  } else {
+    PLAYER_TANK_STATS_DRIVER(values);
+  }
 }
 
 
