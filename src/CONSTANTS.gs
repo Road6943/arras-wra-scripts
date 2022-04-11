@@ -1,8 +1,7 @@
 // PLAYER_TANK_STATS CONSTANTS -- BEGIN: ---------------------------------------------------------------------
 
-
-
   const WR_SHEET_NAME = "Records" // Name of the sheet with all the records
+  const EVENT_WR_SHEET_NAME = "Event Records" // Name of the sheet with all the event records
   
   // STARTING_ROW and STARTING_COLUMN are NOT Zero-Indexed
   // Enter the actual row and col you see on the spreadsheet
@@ -18,6 +17,7 @@
 
 
   const PLAYER_SHEET_TO_DISPLAY_RESULTS_ON = "New_Calculations"; // sheet on which the results of PLAYER_STATS() are printed
+  const EVENT_PLAYER_SHEET_TO_DISPLAY_RESULTS_ON = "Event_Calculations";
 
   // cell where the results will begin being printed in
   // this value is the top left, so the results will be printed to the right and below it
@@ -25,15 +25,22 @@
   const PLAYER_COLUMN_OF_TOP_LEFT_CELL = 'F';
   const PLAYER_ROW_OF_TOP_LEFT_CELL = 3;
 
+  const EVENT_PLAYER_COLUMN_OF_TOP_LEFT_CELL = 'F';
+  const EVENT_PLAYER_ROW_OF_TOP_LEFT_CELL = 3;
+
 
 
   const TANK_SHEET_TO_DISPLAY_RESULTS_ON = "New_Calculations"; // sheet on which the results of TANK_STATS() are printed
+  const EVENT_TANK_SHEET_TO_DISPLAY_RESULTS_ON = "Event_Calculations";
 
   // cell where the results will begin being printed in
   // this value is the top left, so the results will be printed to the right and below it
   // make sure nothing is immediately to the right or bottom of this cell or it will be overwritten
   const TANK_COLUMN_OF_TOP_LEFT_CELL = 'M';
   const TANK_ROW_OF_TOP_LEFT_CELL = 3;
+
+  const EVENT_TANK_COLUMN_OF_TOP_LEFT_CELL = 'M';
+  const EVENT_TANK_ROW_OF_TOP_LEFT_CELL = 3;
 
 
 
@@ -69,6 +76,7 @@
   const REJECTED_STATUS_CHARACTER = 'x';
   
   const SPECIAL_SUBMISSION_SECONDARY_RECORD = "Secondary Record"; // name of the special submission item on form that is used to indicate a submission to Secondary Records
+  
   
   
 // Move To Older Submissions Constants:
@@ -111,7 +119,14 @@
 
 // ADD_TO_LEGACY_HAS CONSTANTS -- END -------------------------------------------------
 
+// ADD_TO_EVENT_HAS CONSTANTS -- BEGIN -------------------------------------------------
 
+  const EVENT_LAUNCH_CHARACTER = "eve"; // only approve for EAS, not Event Records
+  const SPECIAL_SUBMISSION_EVENT_RECORD = "Event Record"
+  const MINIMUM_SCORE_FOR_EVENT_ARRAS_SCORES = 2000000; // 2 mil at the moment
+  const EAS_INDICATION_CHARACTER = 'e'; // in HAS calculations, this indicates that a score belongs on the event has
+
+// ADD_TO_EVENT_HAS CONSTANTS -- END -------------------------------------------------
 
 
 // GET_DATA_FOR_WEBSITE CONSTANTS -- BEGIN: ---------------------------------------------------------------------
