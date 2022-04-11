@@ -36,3 +36,4 @@ function GET_HIGHEST_RECORD_IN_RANGE(range, tankNamesRange) {
   // need to return a 2d array
   return [highestRecordArr];
 }
+
