@@ -1,7 +1,7 @@
 // functions that run when the Burger Button (button in top right of submissions sheet) is clicked
 function BURGER_BUTTON_FUNCTION() {
   MOVE_TO_OLDER_SUBMISSIONS_DRIVER();
-  getDataForWebsite(); // This updates the wra website - road6943.github.io/wra - whenever the burger button is clicked, in order to keep the website semi-up-to-date
+  //getDataForWebsite(); // This updates the wra website - road6943.github.io/wra - whenever the burger button is clicked, in order to keep the website semi-up-to-date
 }
 
 function onEdit(event) {
@@ -9,23 +9,26 @@ function onEdit(event) {
   const editedSheetName = event.range.getSheet().getName();
   
   // only call other functions when one of these specific sheets below is edited
-  if (editedSheetName !== WR_SHEET_NAME && editedSheetName !== SUBMISSIONS_SHEET_NAME) {
+  if (editedSheetName !== WR_SHEET_NAME && editedSheetName !== EVENT_WR_SHEET_NAME && editedSheetName !== SUBMISSIONS_SHEET_NAME) {
     return;  
   }
   
   // get wr records sheet
-  const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(WR_SHEET_NAME);
+  let sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(WR_SHEET_NAME);
   
   // getDataRange returns the entire "Records" sheet 
   // I'm doing it like this so that I don't have to constantly update the script
   // whenever theres a new tank or gamemode
   const values = sheet.getDataRange().getValues();
-  
+
   // if edited sheet is the records sheet only, then trigger the PLAYER_TANK_STATS_DRIVER() function only
   // this is for when a wr manager directly edits the records sheet, such as by approving records the old way 
   // through copy/paste or the even older way of manual editing
   if (editedSheetName === WR_SHEET_NAME) {
     PLAYER_TANK_STATS_DRIVER(values);
+  }
+  if (editedSheetName === EVENT_WR_SHEET_NAME) {
+    EVENT_PLAYER_TANK_STATS_DRIVER(eventValues);
   }
 
   
@@ -41,6 +44,6 @@ function onEdit(event) {
     WR_APPROVAL_DRIVER(values, eventRow, eventColumn, eventValue, eventOldValue);
     
     //uncomment to troll other wrm's
-    // if (['k', 'h', 'v', 'x', 'leg'].includes(event.value.toLowerCase())) { event.range.setValue(BEE_MOVIE_SCRIPT.replaceAll("\n", " ").slice(0,49999)); Browser.msgBox(`🐝`); }
+    // if (['k', 'h', 'v', 'x', 'leg', 'eve'].includes(event.value.toLowerCase())) { event.range.setValue(BEE_MOVIE_SCRIPT.replaceAll("\n", " ").slice(0,49999)); Browser.msgBox(`🐝`); }
   }
 }
