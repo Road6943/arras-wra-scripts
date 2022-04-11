@@ -152,6 +152,3 @@ function PRINT_ARRAY(arrayToPrint, sheetName, cellColumn, cellRow) {
   // Array will be printed on sheetName starting at, and extending down and to the right of, the cell at (cellColumn,cellRow)
   printRange.setValues(arrayToPrint);
 }
-
-
-
