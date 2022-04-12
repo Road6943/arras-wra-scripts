@@ -47,6 +47,11 @@ function WR_APPROVAL_DRIVER(values, eventRow, eventColumn, eventValue, eventOldV
     ADD_SCORE_TO_LEGACY_HAS(submissionDetailsArray, editedCell);
     return;  
   }
+  // if 'eve' launch text is used to only approve for EAS, then do only that and return early
+  else if (eventValue === EVENT_LAUNCH_CHARACTER) {
+    ADD_SCORE_TO_EAS(submissionDetailsArray, editedCell);
+    return;
+  }
   
   
   // get 1-indexed row and col of the record to replace on the sheet
@@ -71,15 +76,9 @@ function WR_APPROVAL_DRIVER(values, eventRow, eventColumn, eventValue, eventOldV
 
   // values array is 0-indexed, so we need to subtact 1 from recordRow and recordCol to get the correct oldRecordScore
   const oldRecordScore = values[recordRow - 1][recordCol - 1];
-
-  
-  // if 'eve' launch text is used to only approve for EAS, then do only that and return early
-  if (eventValue === EVENT_LAUNCH_CHARACTER) {
-    ADD_SCORE_TO_EAS(submissionDetailsArray, editedCell);
-    return;
     
-    // handle event records that may or may not also be for EAS
-  } else if (submissionSpecialSubmission === SPECIAL_SUBMISSION_EVENT_RECORD) {
+  // handle event records that may or may not also be for EAS
+  if (submissionSpecialSubmission === SPECIAL_SUBMISSION_EVENT_RECORD) {
     let eventRecordApproved = false;
     let easApproved = false;
 
