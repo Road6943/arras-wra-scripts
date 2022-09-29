@@ -38,6 +38,21 @@ function WR_APPROVAL_DRIVER(values, eventRow, eventColumn, eventValue, eventOldV
 
     isEventRecord = true;
   }
+
+  let isIncogRecord = false;
+
+  // if we're dealing with an incog record, use the INCOG WR SHEET values instead of the main Records Sheet values
+  if (submissionSpecialSubmission === SPECIAL_SUBMISSION_INCOG_RECORD) {
+    values = (
+      SpreadsheetApp
+        .getActiveSpreadsheet()
+        .getSheetByName(INCOG_WR_SHEET_NAME)
+        .getDataRange()
+        .getValues()
+    )
+
+    isIncogRecord = true;
+  }
     
   
   // if wr manager uses the Legacy Launch Sequence 'leg' on people submitting older screenshots for instance
@@ -50,6 +65,11 @@ function WR_APPROVAL_DRIVER(values, eventRow, eventColumn, eventValue, eventOldV
   // if 'eve' launch text is used to only approve for EAS, then do only that and return early
   else if (eventValue === EVENT_LAUNCH_CHARACTER) {
     ADD_SCORE_TO_EAS(submissionDetailsArray, editedCell);
+    return;
+  }
+  // if 'inc' launch text is used to only approve for IAS, then do only that and return early
+  else if (eventValue === INCOG_LAUNCH_CHARACTER) {
+    ADD_SCORE_TO_IAS(submissionDetailsArray, editedCell);
     return;
   }
   
@@ -117,6 +137,51 @@ function WR_APPROVAL_DRIVER(values, eventRow, eventColumn, eventValue, eventOldV
 
     } else {
       Browser.msgBox("EVENT RECORD & EAS SUBMISSIONS BOTH REJECTED", `${PRINT_SUBMISSION_DETAILS(submissionDetailsArray)} is lower than the current event record of ${FORMAT_SCORE(oldRecordScore)}\\nand is lower than the minimum score needed for Event Arras Scores, currently ${FORMAT_SCORE(MINIMUM_SCORE_FOR_EVENT_ARRAS_SCORES)}`, Browser.Buttons.OK);
+    }
+
+    return;
+  }
+
+  // handle incog records that may or may not also be for IAS
+  if (submissionSpecialSubmission === SPECIAL_SUBMISSION_INCOG_RECORD) {
+    let incogRecordApproved = false;
+    let iasApproved = false;
+
+    // incog record
+    if (submissionScore > oldRecordScore) {
+      editedCell.setValue(APPROVED_STATUS_CHARACTER);
+      incogRecordApproved = true;
+
+      // last param === isIncogRecord
+      ADD_APPROVED_WR_TO_SHEET_AND_CALL_PLAYER_STATS(
+        values, recordRow, recordCol, submissionScore, submissionPlayerName, submissionProofLink, false, true
+      );
+      
+    } else {
+      // record too low
+      editedCell.setValue(REJECTED_STATUS_CHARACTER);
+    }
+
+    // IAS
+    if (submissionScore > MINIMUM_SCORE_FOR_INCOG_ARRAS_SCORES) {
+      editedCell.setValue(APPROVED_STATUS_CHARACTER);
+      iasApproved = true;
+      ADD_SCORE_TO_IAS(submissionDetailsArray, editedCell, false);
+    }
+
+    
+
+    if (incogRecordApproved && iasApproved) {
+      Browser.msgBox("INCOG RECORD & IAS SUBMISSION BOTH APPROVED", `${PRINT_SUBMISSION_DETAILS(submissionDetailsArray)} has replaced the previous incog record of ${FORMAT_SCORE(oldRecordScore)} and has been added to Incog Arras Scores`, Browser.Buttons.OK);
+
+    } else if (incogRecordApproved) {
+      Browser.msgBox("Incog RECORD SUBMISSION APPROVED", `${PRINT_SUBMISSION_DETAILS(submissionDetailsArray)} has replaced the previous incog record of ${FORMAT_SCORE(oldRecordScore)}`, Browser.Buttons.OK);
+
+    } else if (iasApproved) {
+      Browser.msgBox("IAS SUBMISSION APPROVED", `${PRINT_SUBMISSION_DETAILS(submissionDetailsArray)} has been added to Incog Arras Scores`, Browser.Buttons.OK);
+
+    } else {
+      Browser.msgBox("INCOG RECORD & IAS SUBMISSIONS BOTH REJECTED", `${PRINT_SUBMISSION_DETAILS(submissionDetailsArray)} is lower than the current incog record of ${FORMAT_SCORE(oldRecordScore)}\\nand is lower than the minimum score needed for Incog Arras Scores, currently ${FORMAT_SCORE(MINIMUM_SCORE_FOR_INCOG_ARRAS_SCORES)}`, Browser.Buttons.OK);
     }
 
     return;
@@ -202,12 +267,13 @@ function EDITS_ARE_VALID_FOR_RUNNING_SCRIPT(eventColumn, eventValue) {
   }
   
   
-  const newCellValueAfterEdit = (eventValue).toLowerCase();
+  const newCellValueAfterEdit = eventValue.toLowerCase();
   
   if (newCellValueAfterEdit !== SCRIPT_LAUNCH_CHARACTER.toLowerCase() 
         && newCellValueAfterEdit !== HAS_ONLY_LAUNCH_CHARACTER
         && newCellValueAfterEdit !== LEGACY_LAUNCH_CHARACTER
-        && newCellValueAfterEdit !== EVENT_LAUNCH_CHARACTER) {
+        && newCellValueAfterEdit !== EVENT_LAUNCH_CHARACTER
+        && newCellValueAfterEdit !== INCOG_LAUNCH_CHARACTER) {
     return false;
   }
   
@@ -366,12 +432,12 @@ function FORMAT_SCORE(score) {
 
 // add wr to sheet and call player_stats
 function ADD_APPROVED_WR_TO_SHEET_AND_CALL_PLAYER_STATS(
-  values, recordRow, recordCol, submissionScore, submissionPlayerName, submissionProofLink, isEventRecord=false) {
+  values, recordRow, recordCol, submissionScore, submissionPlayerName, submissionProofLink, isEventRecord=false, isIncogRecord=false) {
   
   //replace old record with new record
   const newRecordArray = [[submissionScore, submissionPlayerName, submissionProofLink]]; // needs to be a 2d array, hence the double [[]]
   
-  let recordsSheetName = isEventRecord ? EVENT_WR_SHEET_NAME : WR_SHEET_NAME;
+  let recordsSheetName = isEventRecord ? EVENT_WR_SHEET_NAME : isIncogRecord ? INCOG_WR_SHEET_NAME : WR_SHEET_NAME;
   let recordsSheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(recordsSheetName); 
 
   const recordRange = recordsSheet.getRange(recordRow, recordCol, 1, 3); // 1-indexed
@@ -390,6 +456,8 @@ function ADD_APPROVED_WR_TO_SHEET_AND_CALL_PLAYER_STATS(
   // since script-based editing doesnt naturally set off an onEdit trigger
   if (isEventRecord) {
     EVENT_PLAYER_TANK_STATS_DRIVER(values);
+  } else if (isIncogRecord) {
+    INCOG_PLAYER_TANK_STATS_DRIVER(values);
   } else {
     PLAYER_TANK_STATS_DRIVER(values);
   }
