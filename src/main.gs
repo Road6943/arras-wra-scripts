@@ -9,17 +9,21 @@ function onEdit(event) {
   const editedSheetName = event.range.getSheet().getName();
   
   // only call other functions when one of these specific sheets below is edited
-  if (editedSheetName !== WR_SHEET_NAME && editedSheetName !== EVENT_WR_SHEET_NAME && editedSheetName !== SUBMISSIONS_SHEET_NAME) {
+  if (editedSheetName !== WR_SHEET_NAME && editedSheetName !== EVENT_WR_SHEET_NAME && editedSheetName !== SUBMISSIONS_SHEET_NAME && editedSheetName !== INCOG_WR_SHEET_NAME) {
     return;  
   }
   
   // get wr records sheet
   let sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(WR_SHEET_NAME);
+  let eventSheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(EVENT_WR_SHEET_NAME);
+  let incogSheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(INCOG_WR_SHEET_NAME);
   
   // getDataRange returns the entire "Records" sheet 
   // I'm doing it like this so that I don't have to constantly update the script
   // whenever theres a new tank or gamemode
   const values = sheet.getDataRange().getValues();
+  const eventValues = eventSheet.getDataRange().getValues();
+  const incogValues = incogSheet.getDataRange().getValues();
 
   // if edited sheet is the records sheet only, then trigger the PLAYER_TANK_STATS_DRIVER() function only
   // this is for when a wr manager directly edits the records sheet, such as by approving records the old way 
@@ -29,6 +33,9 @@ function onEdit(event) {
   }
   if (editedSheetName === EVENT_WR_SHEET_NAME) {
     EVENT_PLAYER_TANK_STATS_DRIVER(eventValues);
+  }
+  if (editedSheetName === INCOG_WR_SHEET_NAME) {
+    INCOG_PLAYER_TANK_STATS_DRIVER(incogValues);
   }
 
   
