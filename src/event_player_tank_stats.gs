@@ -1,4 +1,4 @@
-// NOTE: This was made by TJL/Artificial
+// NOTE: This was made by TJL
 
 // main entry point to this file, controls which functions get called when
 function EVENT_PLAYER_TANK_STATS_DRIVER(eventValues) {
@@ -101,15 +101,26 @@ function GET_EVENT_TANK_STATS(eventValues) {
   // for each row, make a tank property and fill it with the sum of the record scores done with that tank
   for (let row = startingRowZeroIndex; row < numRows; ++row) {
     
+    /* NOTE: THIS WAS CAUSING TANK ROWS TO BE SKIPPED IF NO FFA RECORD EXISTED FOR THAT TANK ROW
+             THIS WAS AMENDED BY CHECKING THAT THE TANKNAME CELL ISN'T EMPTY AND ALSO DOESN'T CONTAIN "TIER "
+
     // if the proof link cell is empty, then you're currently not looking at a record and should skip ahead to the next row
     // for example, the blank row between tier 1,2,3,4 tank records or the gamemode name rows
     const proofLink = eventValues[row][startingColZeroIndex + 2];
     if (proofLink === "") {
       continue;
     }
+    */
+    
+    // gets the actual name of the tank in the current row
+    const tankName = eventValues[row][tankNamesColZeroIndex]; 
+    
+    // skip over non-tankname rows like the empty rows between tiers and the gamemode name rows (which contain Tier _ in place of a tankname)
+    if ((tankName.trim() === "") || tankName.toLowerCase().includes("tier ")) {
+      continue;
+    }
     
     // initialize a tank's combined record score as 0
-    const tankName = eventValues[row][tankNamesColZeroIndex]; // gets the actual name of the tank in the current row
     tankObj[tankName] = 0;
     
     for (let col = startingColZeroIndex; col < numCols; col += 3) { //yes, its += 3
